@@ -34,7 +34,7 @@ jobs:
       - name: 编译
         run: |
           sudo apt update
-          sudo apt-get install -y curl bspatch jq git nodejs gcc unzip
+          sudo apt-get install -y curl bspatch jq git nodejs gcc unzip rar unrar
           npm install pnpm -g
           sudo cp -f type.sh /home
           chmod +x type.sh
@@ -68,6 +68,9 @@ jobs:
           sudo go build -ldflags="$ldflags" .
           sudo mkdir -p /home/alist-bin
           sudo cp -f alist /home/alist-bin/
+          sudo rar a alist.rar /home/alist-bin/
+          sudo cp -f alist.rar /home/alist-bin/
+          sudo rm -f /home/alist-bin/alist
       - name: 上传固件GitHub
         uses: actions/upload-artifact@master
         if: always()
