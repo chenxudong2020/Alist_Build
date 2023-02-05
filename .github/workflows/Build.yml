@@ -42,7 +42,7 @@ jobs:
       - name: 环境准备
         run: |
           sudo apt update
-          sudo apt-get install -y curl bspatch jq git nodejs-legacy nodejs golang gcc unzip
+          sudo apt-get install -y curl bspatch jq git nodejs golang gcc unzip
           npm install pnpm -g
           git clone --recurse-submodules ${{matrix.alist-web}} /home/alist-web
           git clone ${{matrix.alist}} /home/alist
