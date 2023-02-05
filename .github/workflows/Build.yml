@@ -1,0 +1,94 @@
+name: Build Alist
+
+on:
+  schedule:
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+    inputs:
+      clean_cache:
+        description: 'Clear caches'
+        required: false
+        type: boolean
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: 编译 "${{matrix.platform}} ${{matrix.version}} ${{matrix.machine}}"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - alist-web: https://github.com/alist-org/alist-web.git
+            alist: https://github.com/alist-org/alist.git
+            machine: UNAS_NS202
+            user: chenxudong2020
+
+    steps:
+      - name: 检出项目文件
+        uses: actions/checkout@v3
+        
+      - name: 获取当前时间
+        id: date
+        run: |
+          echo "today=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+          echo "now=$(date +'%s')" >> $GITHUB_OUTPUT
+
+      - name: 获取项目描述
+        id: desc
+        run: |
+          wget https://raw.githubusercontent.com/${{matrix.user}}/Redpill_Build/main/README.MD -O /home/runner/desc.txt
+          echo "description=$(cat /home/runner/desc.txt)" >> $GITHUB_OUTPUT
+        
+      - name: 环境准备
+        run: |
+          sudo apt update
+          sudo apt-get install -y curl bspatch jq git nodejs-legacy nodejs golang gcc unzip
+          npm install pnpm -g
+          git clone --recurse-submodules ${{matrix.alist-web}} /home/alist-web
+          git clone ${{matrix.alist}} /home/alist
+          cd /home/alist-web
+          wget https://crowdin.com/backend/download/project/alist/zh-CN.zip
+          unzip zh-CN.zip
+          node ./scripts/i18n.mjs
+          rm -f zh-CN.zip
+          pnpm install && pnpm run build
+          cp -rf /home/alist-web/dist /home/alist/public
+          cd /home/alist
+          appName="alist"
+          builtAt="$(date +'%F %T %z')"
+          goVersion=$(go version | sed 's/go version //')
+          gitAuthor=$(git show -s --format='format:%aN <%ae>' HEAD)
+          gitCommit=$(git log --pretty=format:"%h" -1)
+          version=$(git describe --long --tags --dirty --always)
+          webVersion=$(wget -qO- -t1 -T2 "https://api.github.com/repos/alist-org/alist-web/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g')
+          ldflags="\
+          -w -s \
+          -X 'github.com/alist-org/alist/v3/internal/conf.BuiltAt=$builtAt' \
+          -X 'github.com/alist-org/alist/v3/internal/conf.GoVersion=$goVersion' \
+          -X 'github.com/alist-org/alist/v3/internal/conf.GitAuthor=$gitAuthor' \
+          -X 'github.com/alist-org/alist/v3/internal/conf.GitCommit=$gitCommit' \
+          -X 'github.com/alist-org/alist/v3/internal/conf.Version=$version' \
+          -X 'github.com/alist-org/alist/v3/internal/conf.WebVersion=$webVersion' \
+          "
+          go build -ldflags="$ldflags" .
+          mkdir -p /home/alist-bin
+          cp -f alist /home/alist-bin/
+      - name: 上传固件GitHub
+        uses: actions/upload-artifact@master
+        if: always()
+        with:
+            name: alist
+            path: /home/alist-bin/
+      - name: 上传到cowtransfer
+        if: always()
+        run: |
+                curl -fsSL git.io/file-transfer | sh
+                ./transfer cow -s -p 64 --no-progress /home/alist-bin/ 2>&1 | tee cowtransfer.log
+                echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
+      - name: 上传到WeTransfer
+        if: always()
+        run: |
+                curl -fsSL git.io/file-transfer | sh
+                ./transfer wet -s -p 16 --no-progress /home/alist-bin/ 2>&1 | tee wetransfer.log
+                echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
+
