@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - alist-web: https://github.com/alist-org/alist-web.git
+          - alist-web: https://gitee.com/opopop880/alist-web.git
             alist: https://github.com/alist-org/alist.git
 
     steps:
