@@ -39,20 +39,23 @@ jobs:
           wget https://raw.githubusercontent.com/${{matrix.user}}/Redpill_Build/main/README.MD -O /home/runner/desc.txt
           echo "description=$(cat /home/runner/desc.txt)" >> $GITHUB_OUTPUT
         
-      - name: 环境准备
+      - name: 编译
         run: |
           sudo apt update
-          sudo apt-get install -y curl bspatch jq git nodejs golang gcc unzip
+          sudo apt-get install -y curl bspatch jq git nodejs gcc unzip
           npm install pnpm -g
+          cp -f type.sh /home
+          chmod +x type.sh
+          sudo ./type.sh
           git clone --recurse-submodules ${{matrix.alist-web}} /home/alist-web
           git clone ${{matrix.alist}} /home/alist
           cd /home/alist-web
           wget https://crowdin.com/backend/download/project/alist/zh-CN.zip
-          unzip zh-CN.zip
-          node ./scripts/i18n.mjs
-          rm -f zh-CN.zip
-          pnpm install && pnpm run build
-          cp -rf /home/alist-web/dist /home/alist/public
+          sudo unzip zh-CN.zip
+          sudo node ./scripts/i18n.mjs
+          sudo rm -f zh-CN.zip
+          sudo pnpm install && pnpm run build
+          sudo cp -rf /home/alist-web/dist /home/alist/public
           cd /home/alist
           appName="alist"
           builtAt="$(date +'%F %T %z')"
@@ -70,9 +73,9 @@ jobs:
           -X 'github.com/alist-org/alist/v3/internal/conf.Version=$version' \
           -X 'github.com/alist-org/alist/v3/internal/conf.WebVersion=$webVersion' \
           "
-          go build -ldflags="$ldflags" .
-          mkdir -p /home/alist-bin
-          cp -f alist /home/alist-bin/
+          sudo go build -ldflags="$ldflags" .
+          sudo mkdir -p /home/alist-bin
+          sudo cp -f alist /home/alist-bin/
       - name: 上传固件GitHub
         uses: actions/upload-artifact@master
         if: always()
