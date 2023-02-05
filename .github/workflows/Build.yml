@@ -13,7 +13,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: 编译 "${{matrix.platform}} ${{matrix.version}} ${{matrix.machine}}"
+    name: 编译alist
     strategy:
       fail-fast: false
       matrix:
