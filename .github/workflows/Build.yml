@@ -39,8 +39,8 @@ jobs:
           sudo cp -f type.sh /home
           chmod +x type.sh
           sudo ./type.sh
-          git clone --recurse-submodules ${{matrix.alist-web}} /home/alist-web
-          git clone ${{matrix.alist}} /home/alist
+          sudo git clone --recurse-submodules ${{matrix.alist-web}} /home/alist-web
+          sudo git clone ${{matrix.alist}} /home/alist
           cd /home/alist-web
           wget https://crowdin.com/backend/download/project/alist/zh-CN.zip
           sudo unzip zh-CN.zip
