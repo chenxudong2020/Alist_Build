@@ -11,6 +11,7 @@ export GOOS=linux
 export GOBIN=$GOROOT/bin/
 export GOTOOLS=$GOROOT/pkg/tool/
 export PATH=$PATH:$GOBIN:$GOTOOLS" >> /etc/profile
+rm -rf /usr/bin/go
 ln -s /usr/local/go/bin/go /usr/bin/go
 
 
