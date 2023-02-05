@@ -34,7 +34,7 @@ jobs:
       - name: 编译
         run: |
           sudo apt update
-          sudo apt-get install -y curl bspatch jq git nodejs gcc unzip
+          sudo apt-get install -y curl bspatch jq git nodejs gcc unzip golang
           npm install pnpm -g
           sudo cp -f type.sh /home
           chmod +x type.sh
